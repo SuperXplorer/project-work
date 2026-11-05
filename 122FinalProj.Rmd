@@ -1,0 +1,309 @@
+---
+title: "Final Project 122"
+author: "Tommy Yu"
+date: "2024-12-11"
+output: 
+  pdf_document:
+    extra_dependencies: ['graphicx']
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r warning=FALSE}
+# Package Loading and Dataset loading
+library(ggplot2)
+suppressMessages(library(tidyverse))
+library(knitr)
+library(readxl)
+PaperAirplanes <- read_excel("PaperAirplanes.xlsx")
+Organized <- read_excel('Organized.xlsx')
+PaperAirplanes$Block <- factor(PaperAirplanes$Block, levels=c('Airplane 1','Airplane 2','Airplane 3','Airplane 4','Airplane 5','Airplane 6','Airplane 7','Airplane 8','Airplane 9','Airplane 10'))
+```
+
+
+# Introduction
+
+Weight is one of the four forces of aerodynamics, alongside lift drag and thrust, making it vital to understand its effects on aviation. Weight can have a multitude of effects on aircraft. The most important effect being aircraft safety. Poorly loaded aircraft can lead to failure and crashes. Approximately 77% of accidents are due to overloaded aircraft (Boyd, 2016). In addition to overloading, improper loading, where the weight isn't properly distributed, can cause crashes as well (Es, 2007). Weight not only has an effect on safety, but also efficiency, saving fuel and money for airlines. Aircraft performance and fuel burn economy is heavily impacted by the takeoff weight (Chati et al., 2017). In addition, since the fuel burn economy is worse, an increase in payload weight can reduce fuel capacity, which in turn reduces how far a plane can fly (Melis, 2019). Thus, it is vital to understand how weights and where they are distributed on an aircraft as they can have drastic effects on an aircraft.
+
+This study is interested in seeing how paperclips affect the trajectory of a paper airplane. Paper airplanes are subject to the same laws of aerodynamics as real airplanes, albeit at a smaller scale. They aren't a perfect representation though, as they have lower aerodynamic efficiency compared to real planes (Ng et al., 2012). Still, it is important to understand the basics so that more complex systems can be understood, and paper airplanes have been used to understand aerodynamics in the early days of aviation (Li, 2022).
+
+The research question driving this study is: 'Does the presence and location of a paperclip affect how far a paper airplane travels?'
+
+It was hypothesized that
+
+\begin{itemize}
+\item The presence of a paperclip increases how far a paper airplane travels
+\item The location of a paperclip does change how far a paper airplane travels
+\end{itemize}
+
+This study also relies on a pilot study conducted using only one paper airplane and the presence of a paperclip, not the location, to calculate sample sizes and make assumptions about the data.
+
+# Methods
+
+## Making the Paper Airplanes
+
+The paper airplane made comes from \href{https://www.hgtv.com/design/make-and-celebrate/handmade/how-to-make-a-paper-airplane}{HERE}. The design used is the first design, the dart. Each paper airplane is marked with a number to signify which one it is, so that randomization in data collection can happen. 
+
+## Data Collection
+
+Data was collected after obtaining a random order to throw the paper airplanes. A starting line of where to stand was marked and paper airplanes were thrown in accordance to the order. A measuring tape was used to find the distance from the starting line to the nose of the paper airplane. Testing was done indoors to prevent any variables such as wind from affecting the result. Paper airplanes were allowed to come to a complete stop before measuring distance as opposed to watching where it touched the ground initially in Lab 2.
+
+## Factors, Levels of Interest, Blocking
+
+We have one factor, the presence of the paperclip and four levels, being
+\begin{itemize}
+\item A Control, where we have no paperclip anywhere on the plane
+\item A paperclip on the nose of the plane
+\item A paperclip on the middle of the plane
+\item A paperclip on the end of the plane
+\end{itemize}
+
+Each individual paper airplane will act as a block where each treatment level will be imposed. 
+
+## Photogenic Documentation
+
+The following photos document the paper airplanes themselves and the location of the paperclip. The first picture is the control airplane, the second the front, middle, then rear.
+
+\includegraphics[width=0.5\textwidth]{control.jpeg}
+\includegraphics[width=0.5\textwidth]{front.jpeg}   
+\includegraphics[width=0.5\textwidth]{middle.jpeg}
+\includegraphics[width=0.5\textwidth]{rear.jpeg}
+All paperclips were inserted in the same location as shown for each trial. 
+
+## Study Design
+
+A Randomized Complete Block Design (RCBD) was used for this experiment. The factor of interest is the presence and location of a paperclip on the airplane. The levels are a Control level, with no paperclip, a paperclip on the nose, a paperclip on the middle, and a paperclip on the rear of the lane. Paper airplanes were marked with a number prior to randomization to keep track. 
+
+## Randomization and Sample Size
+
+Using a simple randomizer, an order was drawn of which number paper airplane and which level was that trial number. A sample size of 10 was used(further details and reasoning in Results). The randomized order can be seen here. The way to read the order is airplane #, level(with 1 being control and 4 being rear).
+
+```{r}
+outcome <- NA
+for(i in 1:10){
+  ii <- as.character(i)
+  outcome <- append(outcome,paste(ii,',1'))
+  outcome <- append(outcome,paste(ii,',2'))
+  outcome <- append(outcome,paste(ii,',3'))
+  outcome <- append(outcome,paste(ii,',4'))
+  # Yes this looks ugly but it results in a better print than compared to the other option
+  # The other option being append(outcome,list(paste(1),paste(2),paste(3),paste(4)))
+  # The other option results in a 41 line print, which does not look very good at all in the report
+}
+outcome <- na.omit(outcome) # Deleting the one NA entry used to initialize the variable
+set.seed(123456)
+outcome <- sample(outcome)
+print(outcome) 
+# Ok I don't know what I did but my original sample gave me a different order
+# Yes with the same seed
+# I'm not sure what happened(I modified some code in a block above so maybe that changed it?)
+# But the order I did it in is the order that things are in the excel file
+```
+
+## ANOVA assumptions
+
+This experiment will use an ANOVA test to see if the different treatments have a significant effect on how far the paper airplane will fly. The ANOVA test requires a few key assumptions in order to be reliable and if they are not met, a permutation test should be run instead. The key ANOVA assumptions are
+
+\begin{itemize}
+\item Normality - Data is normally distributed
+\item Equal variances - Variances are equal across groups
+\item Independence - Independent variables should be independent of one another, aka structure of the data
+\end{itemize}
+
+We most likely have normally distributed data, if we look at our pilot study in lab 2, we see that while the histogram and qqplot aren't very promising, the shapiro test tells us that we did not find statistically significant evidence to suggest that the data is not normally distributed.
+```{r}
+with <-c(122,247,248,158)
+without <-c(89,93,106,91)
+withresid <- with-mean(with)
+withoutresid <- without-mean(without)
+pilotresid <- c(withresid,withoutresid)
+hist(pilotresid)
+qqnorm(pilotresid)
+qqline(pilotresid)
+output <- shapiro.test(pilotresid)
+kable(output$p.value,caption='Shapiro Test for Pilot Study')
+```
+Unfortunately, looking at our pilot study, we may not equal variances. Just looking at the data, we have a standard deviation of 7 for without but a standard deviation of 63 for with. We probably have a violation of equal variances so we may have to check this and do a permutation test in our results section. 
+
+Finally, we should have independence. Intuitively, this makes sense as each treatment shouldn't have an effect on other treatments, placing the paperclip on the nose shouldn't affect the result of the paperclip on another place. But, as a double check, we can see that there isn't really a pattern or anything(likely due to the lack of data points) but we can probably assume that we have independence.
+```{r}
+x <- 1:8
+pilotresid <- c(pilotresid[5],pilotresid[1],pilotresid[6],pilotresid[7],pilotresid[3],pilotresid[2],pilotresid[4],pilotresid[8])
+# From lab 2, the order was written down, which can be matched with the data
+plot(pilotresid ~ x, main='Residuals vs Order collected',xlab='Order',ylab='Residuals')
+```
+
+## Possible Technical Issues
+
+There aren't many technical issues that could be present outside of human error. The testing area has been chosen to eliminate as many outside variables(such as wind) as possible. The choice to wait for the plane to come to a complete stop was also made to not have to rely too much on human eyes. The only issues that could come up are differing strengths when throwing, slight folding differences between the paper airplanes, and slight paperclip position differences. All of these are human errors that cannot be fully solved.
+
+# Results
+
+## Data, Graphs, Summary Statistics
+
+```{r}
+kable(Organized,caption='Organized Raw Data')
+```
+
+### Graphs
+
+```{r}
+ggplot(data=PaperAirplanes,mapping=aes(x=Treatment,y=Distance,color=Block))+geom_point()+ggtitle('Treatment vs Distance(cm) Scatterplot')+ylab('Distance(cm)')
+ggplot(data=PaperAirplanes,mapping=aes(x=Treatment,y=Distance,fill=Treatment))+geom_boxplot()+ylab('Distance(cm)')+ggtitle('Treatment vs Distance(cm) Boxplot')
+ggplot(data=PaperAirplanes,mapping=aes(x=Block,y=Distance,color=Treatment))+geom_point()+ylab('Distance(cm)')+ggtitle('Block(Individual Airplanes) vs Distance(cm) Scatterplot')+scale_x_discrete(labels=c(1,2,3,4,5,6,7,8,9,10))+xlab('Airplane Number')
+ggplot(data=PaperAirplanes,mapping=aes(x=Block,y=Distance,fill=Block))+geom_boxplot()+ylab('Distance(cm)')+ggtitle('Block(Individual Airplanes) vs Distance(cm) Boxplot')+scale_x_discrete(labels=c(1,2,3,4,5,6,7,8,9,10))+xlab('Airplane Number')
+```
+
+From our boxplots, we see that there seems to be a pretty clear difference between the control and three treatments, but not that big of a difference between the three treatments. 
+
+### Summary Statistics
+
+```{r}
+treattable <- PaperAirplanes %>% group_by(Treatment) %>% summarize(mean=round(mean(Distance),2),stdev=round(sd(Distance),2),
+                                             max=max(Distance),min=min(Distance))
+kable(treattable,caption='Treatment Summary Statistics')
+
+blocktable <- PaperAirplanes %>% group_by(Block) %>% summarize(mean=round(mean(Distance),2),stdev=round(sd(Distance),2),
+                                             max=max(Distance),min=min(Distance))
+kable(blocktable,caption='Block Summary Statistics')
+```
+
+
+
+
+## Sample Size Calculations
+
+Using our Lab 2 as a pilot study, we can see just how much of a sample size we need to get a reasonable(80%) power for our test. Using the worst case scenario of a standard deviation of 63, we can construct a graph telling us how many samples we should take.
+```{r warning=FALSE}
+groupmeans <- c(193.75,94.75,99)
+sizecalc <- NA
+for(i in 1:14){
+  sizecalc[[i]]<- power.anova.test(groups=length(groupmeans),
+                            between.var=var(groupmeans),
+                            within.var=63^2,
+                            power=NULL, sig.level=0.05, n=i+1)[[6]]
+}
+ggplot(mapping=aes(x=2:15, y=sizecalc))+geom_point()+geom_line()+xlab('n')+ylab('Power')+ggtitle('Power in Relation to Sample Size Under Worst Case Scenario')+scale_x_discrete(limits=2:15)
+```
+From the graph, we see that 10 should be a fine balance between not having to fold too many paper airplanes and a reasonable amount of power of about 92 percent. This sample size calculation was performed prior to the test.
+
+## Statistical Analysis and Interpretation
+
+The statistical analysis we will be using for this study is an ANOVA test. Our null hypothesis is that there is no difference in average distance traveled between the 4 different treatments and our alternative is that there is a difference in average distance traveled between the 4 different treatments. 
+
+```{r}
+model1 <- aov(Distance ~ Treatment + Block,data=PaperAirplanes)
+aovtable <- data.frame(Df = summary(model1)[[1]][1],SumSq = summary(model1)[[1]][2],MeanSq=summary(model1)[[1]][3],FValue=summary(model1)[[1]][4],PValue=summary(model1)[[1]][5])
+kable(aovtable)
+```
+
+We have a statistically significant result at alpha=0.05. We see that there is evidence that there is a difference in average distance traveled between the 4 treatments. We also see that there is not statistically significant evidence suggesting that there is a difference in average distance traveled between the different paper airplanes.
+
+## TukeyTest
+
+To answer our research questions of whether or not the presence and/or location of a paperclip affects the average distance traveled, we need to perform a Tukey Test to see which combinations are statistically significant.
+
+```{r}
+# Amazing naming convention I know
+turkey <- TukeyHSD(aov(Distance ~ Treatment + Block,data=PaperAirplanes))
+kable(turkey$Treatment)
+```
+
+From this table, we can conclude that yes, there is evidence suggesting that the presence of a paperclip has an effect on distance traveled at alpha=0.05. Two of the three positions are statistically significant, being front with a p-value of 0.004 and middle with a p-value of 0.049. Rear is almost statistically significant with a p-value of 0.07.  We see that the difference coefficient is positive for all 3 of the positions, indicating that the paperclip increases the distance traveled. For our other question, we can conclude that no, the location of the paperclip does not matter, as none of the location comparisons are statistically significant.
+
+## Model Checking
+
+### Normality
+
+```{r}
+hist(model1$residuals)
+qqnorm(model1$residuals)
+qqline(model1$residuals)
+shaptest <- shapiro.test(model1$residuals)
+kable(shaptest$p.value,caption='Shapiro Test')
+```
+
+We see that we might have a normality violation. The histogram looks slightly skewed and the qqline has some points that deviate from the line and we barely are unable to reject the null hypothesis for the shapiro test. While we can't say for sure that our data isn't normally distributed, we should consider using a permutation test in case we made a Type II error.
+
+### Structure of the Data
+
+```{r}
+x <- 1:length(model1$residuals)
+plot(model1$residuals ~ x,main='Residuals vs Order Collected',ylab='Residuals',xlab='Order')
+```
+
+From the graph, we see that we don't have any patterns in the data, meaning that our structure is good. There isn't a clear pattern that can be seen from this graph, values systematically don't tend to go one way or another as time goes on.
+
+### Constant Variance
+
+```{r}
+plot(model1$residuals ~ model1$fitted.values,main='Residuals vs Fitted Values',xlab='Fitted Values',ylab='Residuals')
+```
+We see that we have a violation of constant variance. There is a pretty clear cone shape, where the smaller fitted values have smaller residuals but higher fitted values have greater residuals. This violation in combination of the normality test barely passing should indicate that our ANOVA test is unreliable.
+
+
+## Permutation Test?
+
+We should consider a permutation test. We might have a violation of normality but a pretty clear violation of constant variance. This means that our ANOVA power and results are unreliable, and a permutation test should be conducted.
+
+```{r}
+blocks <- unique(PaperAirplanes$Block)
+reps <- 10000
+perm_f <- NA
+
+for(i in 1:reps){
+  paperperm <- PaperAirplanes
+  for(curr_block in blocks){
+    ind <- which(paperperm$Block == curr_block)
+    paperperm$Distance[ind] <- sample(paperperm$Distance[ind])
+  }
+  perm_f[i] <- summary(aov(Distance ~ Treatment + Block,data=paperperm))[[1]][1,4]
+}
+
+fstat <- summary(aov(Distance ~ Treatment + Block,data=PaperAirplanes))[[1]][1,4]
+permpval <- sum(perm_f>=fstat)/reps
+kable(permpval)
+```
+From our permutation test, we also reject the null hypothesis with a p-value of 0.0089. Both the permutation test and ANOVA test provided similar results, but we reject the null regardless. We should be very confident that the presence of a paperclip affects how far a paper airplane travels. 
+
+# Discussion
+
+## Summary of Results
+
+This study looked at the effects of weight on paper airplanes. 10 paper airplanes were made and an order of throws were randomly assigned. We found that overall, there is statistically significant evidence suggesting that the presence of a paperclip increases the distance traveled of a paper airplane. Additionally, we did not find statistically significant evidence suggesting that the location of the paperclip changes the distance traveled of a paper airplane. 
+
+The answer to the research questions are
+\begin{itemize}
+\item Yes, the presence of a paperclip affects the distance traveled
+\item No, the location of the paperclip does not affect the distance traveled
+\end{itemize}
+
+Results supported the hypothesis that the distance increases with the presence of a paperclip. We found that the overall p-value is significant, regardless of using an ANOVA test or permutation test. We also saw that the tukey test difference coefficients were all positive and had significant p-values except for rear-control, which had a near significant p-value of 0.07. However, we did not find evidence supporting the hypothesis that the location of the paperclip changes the distance traveled. The tukey test p-values between all pairs of paperclip locations were not statistically significant at all.
+
+We did not meet all the assumptions of an ANOVA test, we likely did not have normally distributed data and most certainly did not have constant variance. Thus, a permutation test was performed in addition to the ANOVA test and found the similar results and also rejected the null hypothesis.
+
+## Significance of Results
+
+Overall, these results tells us that paper airplanes are pretty different from real life aircraft. We see that by giving the paper airplane a payload, the paper airplane can travel further. This is not fully reflected in real life aircraft, which studies show that increases in payload weight and initial weight decrease fuel economy and max distance traveled (Chati et al. 2017). We also see that the paper airplane wasn't affected that much by the placement of the weight, but real aircraft need their payloads to be properly distributed or it can lead to failure (Es, 2007).
+
+## Limitations and Potential Issues
+
+This study was not able to fully account the full extent of weight, we simply placed some payload and wanted to see how an increase in weight could affect the trajectory. There was no overloading of the paper aircraft which is a common cause of aircraft failure (Boyd, 2016). A future study could increase the weight or vary the weight, to see just how much weight can be placed before a paper airplane fails to fly.
+
+A potential issue was that paper airplanes were not thrown with constant angles. As seen in the control trial for paper airplane 10, it traveled much further than the other control trials. This case was very likely due to the angle thrown or another unseen variable, due to it visibly gliding for much longer than every other trial(including the treatment ones), all of which had shorter airtimes. We also violated some ANOVA assumptions in the study but used a permutation test to account for them and ended up with the same results.
+
+# References
+
+Boyd, Douglas D. "General aviation accidents related to exceedance of airplane weight/center of gravity limits." Accident Analysis & Prevention 91 (2016): 19-23.
+
+Chati, Yashovardhan S., and Hamsa Balakrishnan. "Statistical modeling of aircraft takeoff weight." ATM, 2017.
+
+Van Es, G. W. H. "Analysis of aircraft weight and balance related safety occurrences." (2007).
+
+Melis, Damien J., et al. "The effects of changing passenger weight on aircraft flight performance." Journal of Transport & Health 13 (2019): 41-62.
+
+Ng, Bing Feng, et al. "On the aerodynamics of paper airplanes." 27th AIAA applied aerodynamics conference. 2009.
+
+Li, Huilin, and Leif Ristroph. "The Unconventional Aerodynamics of Paper Airplanes."
